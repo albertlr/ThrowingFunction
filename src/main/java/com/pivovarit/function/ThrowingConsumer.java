@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -27,15 +27,14 @@ import java.util.function.Consumer;
  * @param <T> the type of the input to the function
  * @param <E> the type of the thrown checked exception
  *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingConsumer<T, E extends Throwable> {
+public interface ThrowingConsumer<T, E extends Exception> {
 
     void accept(T t) throws E;
 
-    static <T, E extends Throwable> Consumer<T> unchecked(ThrowingConsumer<T, E> consumer) {
-        Objects.requireNonNull(consumer);
-
+    static <T, E extends Exception> Consumer<T> unchecked(ThrowingConsumer<T, E> consumer) {
         return consumer.uncheck();
     }
 
@@ -45,8 +44,6 @@ public interface ThrowingConsumer<T, E extends Throwable> {
      * @return chained Consumer instance
      */
     default ThrowingConsumer<T, E> andThenConsume(final ThrowingConsumer<? super T, E> after) {
-        Objects.requireNonNull(after);
-
         return t -> {
             accept(t);
             after.accept(t);
@@ -70,7 +67,7 @@ public interface ThrowingConsumer<T, E extends Throwable> {
         return t -> {
             try {
                 accept(t);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };

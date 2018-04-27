@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.function.UnaryOperator;
@@ -30,13 +30,13 @@ import java.util.function.UnaryOperator;
  * @param <E> the type of the thrown checked exception
  *
  * @see ThrowingFunction
+ *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingUnaryOperator<T, E extends Throwable> extends ThrowingFunction<T, T, E> {
+public interface ThrowingUnaryOperator<T, E extends Exception> extends ThrowingFunction<T, T, E> {
 
     static <T, E extends Exception> UnaryOperator<T> unchecked(ThrowingUnaryOperator<T, E> operator) {
-        Objects.requireNonNull(operator);
-
         return operator.uncheck();
     }
 
@@ -48,11 +48,9 @@ public interface ThrowingUnaryOperator<T, E extends Throwable> extends ThrowingF
         return t -> {
             try {
                 return apply(t);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };
     }
-
-
 }

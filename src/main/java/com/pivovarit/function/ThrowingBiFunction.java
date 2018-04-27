@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -33,20 +33,18 @@ import java.util.function.BiFunction;
  * @param <E> the type of the thrown checked exception
  *
  * @see ThrowingFunction
+ *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingBiFunction<T1, T2, R, E extends Throwable> {
+public interface ThrowingBiFunction<T1, T2, R, E extends Exception> {
     R apply(T1 arg1, T2 arg2) throws E;
 
-    static <T1, T2, R, E extends Throwable> BiFunction<T1, T2, R> unchecked(ThrowingBiFunction<T1, T2, R, E> function) {
-        Objects.requireNonNull(function);
-
+    static <T1, T2, R, E extends Exception> BiFunction<T1, T2, R> unchecked(ThrowingBiFunction<T1, T2, R, E> function) {
         return function.unchecked();
     }
 
     static <T1, T2, R, E extends Exception> BiFunction<T1, T2, Optional<R>> lifted(ThrowingBiFunction<T1, T2, R, E> f) {
-        Objects.requireNonNull(f);
-
         return f.lift();
     }
 
@@ -57,8 +55,6 @@ public interface ThrowingBiFunction<T1, T2, R, E extends Throwable> {
      * @return combined function
      */
     default <V> ThrowingBiFunction<T1, T2, V, E> andThen(final ThrowingFunction<? super R, ? extends V, E> after) {
-        Objects.requireNonNull(after);
-
         return (arg1, arg2) -> after.apply(apply(arg1, arg2));
     }
 
@@ -66,7 +62,7 @@ public interface ThrowingBiFunction<T1, T2, R, E extends Throwable> {
         return (arg1, arg2) -> {
             try {
                 return apply(arg1, arg2);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };
@@ -76,7 +72,7 @@ public interface ThrowingBiFunction<T1, T2, R, E extends Throwable> {
         return (arg1, arg2) -> {
             try {
                 return Optional.of(apply(arg1, arg2));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 return Optional.empty();
             }
         };

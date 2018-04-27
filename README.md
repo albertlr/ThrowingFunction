@@ -1,42 +1,41 @@
-# ThrowingFunction
-Java 8+ functional types supporting checked exceptions + some handy utils. 
+# throwing-function
+Checked Exceptions-enabled Java 8+ functional interfaces + adapters
 
-[![Build Status](https://travis-ci.org/TouK/ThrowingFunction.svg?branch=master)](https://travis-ci.org/TouK/ThrowingFunction)
-[![Sputnik](https://sputnik.touk.pl/conf/badge)](https://sputnik.touk.pl/app#/builds/TouK/ThrowingFunction)
-[![codecov.io](https://codecov.io/github/TouK/ThrowingFunction/coverage.svg?branch=master)](https://codecov.io/github/TouK/ThrowingFunction?branch=master)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.touk/throwing-function/badge.svg)](https://maven-badges.herokuapp.com/maven-central/pl.touk/throwing-function)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/pl.touk/throwing-function/badge.svg)](http://www.javadoc.io/doc/pl.touk/throwing-function)
+[![Build Status](https://travis-ci.org/pivovarit/ThrowingFunction.svg?branch=master)](https://travis-ci.org/pivovarit/ThrowingFunction)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 ## Provides shortcuts for solving Java 8 checked exceptions lambda repackaging hell.
 
-### You can now define functions that throw checked exceptions
+### You can define functions that throw checked exceptions:
     ThrowingFunction<String, URI, URISyntaxException> toUri = URI::new;
 
-### And use those functions seamlessly with native Java 8 classes by using a custom unchecked() adapter
+### And use those functions seamlessly with native `java.util.function` classes by using a custom `ThrowingFunction#unchecked` adapter:
 
-    ...stream().map(ThrowingFunction.unchecked(URI::new)).forEach(System.out::println);
-
-    ...stream().map(unchecked(URI::new)).forEach(System.out::println); //with a static import
+    ...stream()
+      .map(unchecked(URI::new)) // static import of ThrowingFunction#unchecked
+      .forEach(System.out::println);
 
 ### No more:
 
      ...stream().map(path -> {
-                try {
-                    return new URI(path);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            }).forEach(System.out::println);
+         try {
+             return new URI(path);
+         } catch (URISyntaxException e) {
+             throw new RuntimeException(e);
+         }}).forEach(System.out::println);
 
 
 For Maven users:
 
     <dependency>
-      <groupId>pl.touk</groupId>
-      <artifactId>throwing-function</artifactId>
-      <version>1.3</version>
+        <groupId>pl.touk</groupId>
+        <artifactId>throwing-function</artifactId>
+        <version>1.3</version>
     </dependency>
+    
+For Gradle users:
+
+    compile 'pl.touk:throwing-function:1.3'
     
 ### Available types:
 
@@ -55,7 +54,7 @@ For Maven users:
 #### Additional features:
 
     default Function<T, R> uncheck() {...}
-Transforms ThrowingFunction instance into a regular Function. Checked exception gets wrapped in a RuntimeException. 
+Transforms a `ThrowingFunction` instance into a regular `Function`. Checked exceptions get wrapped in a `RuntimeException`. 
 Feature is available for all java.util.function types. Comes both as a static and as an instance method.
 
     static Function<T, R> uncheck(ThrowingFunction<> f) {...}
@@ -70,16 +69,4 @@ is thrown, result will contain an empty Optional instance. Exception gets ignore
 Returns ThrowingPredicate/ThrowingSupplier/ThrowingConsumer instance as a new ThrowingFunction instance.
 
     Checker.checked()
-Additional static function allowing to catch wrapped checked exceptions, unwrap and rethrow them. Comes in handy sometimes.
-
-## Contributors
-
-- Grzegorz Piwowarek
-- Hubert Lipiński
-- Tomasz Wielga
-
-## License
-
-This project is licenced under Apache License.
-    
-
+Additional static function allowing catching wrapped checked exceptions, unwrap and rethrow them. Comes in handy sometimes.

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -28,9 +28,10 @@ import java.util.function.Supplier;
  * @param <T> the type of the output to the function
  * @param <E> the type of the thrown checked exception
  *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingSupplier<T, E extends Throwable> {
+public interface ThrowingSupplier<T, E extends Exception> {
     T get() throws E;
 
     /**
@@ -41,14 +42,10 @@ public interface ThrowingSupplier<T, E extends Throwable> {
     }
 
     static <T, E extends Exception> Supplier<T> unchecked(ThrowingSupplier<T, E> supplier) {
-        Objects.requireNonNull(supplier);
-
         return supplier.uncheck();
     }
 
     static <T, E extends Exception> Supplier<Optional<T>> lifted(ThrowingSupplier<T, E> supplier) {
-        Objects.requireNonNull(supplier);
-
         return supplier.lift();
     }
 
@@ -59,7 +56,7 @@ public interface ThrowingSupplier<T, E extends Throwable> {
         return () -> {
             try {
                 return get();
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };
@@ -73,7 +70,7 @@ public interface ThrowingSupplier<T, E extends Throwable> {
         return () -> {
             try {
                 return Optional.of(get());
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 return Optional.empty();
             }
         };

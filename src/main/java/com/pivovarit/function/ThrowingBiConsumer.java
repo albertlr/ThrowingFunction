@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -31,14 +31,14 @@ import java.util.function.BiConsumer;
  * @param <E> the type of the thrown checked exception
  *
  * @see ThrowingConsumer
+ *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingBiConsumer<T, U, E extends Throwable> {
+public interface ThrowingBiConsumer<T, U, E extends Exception> {
     void accept(T t, U u) throws E;
 
     default ThrowingBiConsumer<T, U, E> andThenConsume(final ThrowingBiConsumer<? super T, ? super U, E> after) {
-        Objects.requireNonNull(after);
-
         return (arg1, arg2) -> {
             accept(arg1, arg2);
             after.accept(arg1, arg2);
@@ -57,8 +57,6 @@ public interface ThrowingBiConsumer<T, U, E extends Throwable> {
     }
 
     static <T, U, E extends Exception> BiConsumer<T, U> unchecked(ThrowingBiConsumer<T, U, E> consumer) {
-        Objects.requireNonNull(consumer);
-
         return consumer.uncheck();
     }
 
@@ -70,7 +68,7 @@ public interface ThrowingBiConsumer<T, U, E extends Throwable> {
         return (arg1, arg2) -> {
             try {
                 accept(arg1, arg2);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 
@@ -24,14 +24,14 @@ import java.util.Objects;
  * Function might throw a checked exception instance.
  *
  * @param <E> the type of the thrown checked exception
+ *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingRunnable<E extends Throwable> {
+public interface ThrowingRunnable<E extends Exception> {
     void run() throws E;
 
     static <E extends Exception> Runnable unchecked(ThrowingRunnable<E> runnable) {
-        Objects.requireNonNull(runnable);
-
         return runnable.unchecked();
     }
 
@@ -42,7 +42,7 @@ public interface ThrowingRunnable<E extends Throwable> {
         return () -> {
             try {
                 run();
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };

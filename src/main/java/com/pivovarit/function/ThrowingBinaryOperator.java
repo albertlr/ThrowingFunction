@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 /**
  * Represents an operation upon two operands of the same type, producing a result
@@ -34,12 +34,12 @@ import pl.touk.throwing.exception.WrappedException;
  *
  * @see ThrowingBiFunction
  * @see ThrowingUnaryOperator
+ *
+ * @author Grzegorz Piwowarek
  */
-public interface ThrowingBinaryOperator<T, E extends Throwable> extends ThrowingBiFunction<T, T, T, E> {
+public interface ThrowingBinaryOperator<T, E extends Exception> extends ThrowingBiFunction<T, T, T, E> {
 
-    static <T, E extends Throwable> BiFunction<T, T, T> unchecked(ThrowingBinaryOperator<T, E> function) {
-        Objects.requireNonNull(function);
-
+    static <T, E extends Exception> BiFunction<T, T, T> unchecked(ThrowingBinaryOperator<T, E> function) {
         return function.unchecked();
     }
     
@@ -48,7 +48,7 @@ public interface ThrowingBinaryOperator<T, E extends Throwable> extends Throwing
         return (arg1, arg2) -> {
             try {
                 return apply(arg1, arg2);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };

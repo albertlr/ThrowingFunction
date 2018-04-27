@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.function.BiPredicate;
@@ -28,32 +28,26 @@ import java.util.function.BiPredicate;
  * @param <T> the type of the first argument to the predicate
  * @param <U> the type of the second argument to the predicate
  * @param <E> the type of the thrown checked exception
+ *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingBiPredicate<T, U, E extends Throwable> {
+public interface ThrowingBiPredicate<T, U, E extends Exception> {
     boolean test(T t, U u) throws E;
 
     static <T, U, E extends Exception> BiPredicate<T, U> unchecked(ThrowingBiPredicate<T, U, E> predicate) {
-        Objects.requireNonNull(predicate);
-
         return predicate.uncheck();
     }
 
     default ThrowingBiPredicate<T, U, E> and(final ThrowingBiPredicate<? super T, ? super U, E> other) {
-        Objects.requireNonNull(other);
-
         return (arg1, arg2) -> test(arg1, arg2) && other.test(arg1, arg2);
     }
 
     default ThrowingBiPredicate<T, U, E> or(final ThrowingBiPredicate<? super T, ? super U, E> other) {
-        Objects.requireNonNull(other);
-
         return (arg1, arg2) -> test(arg1, arg2) || other.test(arg1, arg2);
     }
 
     default ThrowingBiPredicate<T, U, E> xor(final ThrowingBiPredicate<? super T, ? super U, E> other) {
-        Objects.requireNonNull(other);
-
         return (arg1, arg2) -> test(arg1, arg2) ^ other.test(arg1, arg2);
     }
 
@@ -75,7 +69,7 @@ public interface ThrowingBiPredicate<T, U, E extends Throwable> {
         return (arg1, arg2) -> {
             try {
                 return test(arg1, arg2);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };

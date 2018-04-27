@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.touk.throwing;
+package com.pivovarit.function;
 
-import pl.touk.throwing.exception.WrappedException;
+import com.pivovarit.function.exception.WrappedException;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -27,32 +27,25 @@ import java.util.function.Predicate;
  * @param <T> the type of the input to the function
  * @param <E> the type of the thrown checked exception
  *
+ * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
-public interface ThrowingPredicate<T, E extends Throwable> {
+public interface ThrowingPredicate<T, E extends Exception> {
     boolean test(T t) throws E;
 
-    static <T, E extends Throwable> Predicate<T> unchecked(ThrowingPredicate<T, E> predicate) {
-        Objects.requireNonNull(predicate);
-
+    static <T, E extends Exception> Predicate<T> unchecked(ThrowingPredicate<T, E> predicate) {
         return predicate.uncheck();
     }
 
     default ThrowingPredicate<T, E> and(final ThrowingPredicate<? super T, E> other) {
-        Objects.requireNonNull(other);
-
         return t -> test(t) && other.test(t);
     }
 
     default ThrowingPredicate<T, E> or(final ThrowingPredicate<? super T, E> other) {
-        Objects.requireNonNull(other);
-
         return t -> test(t) || other.test(t);
     }
 
     default ThrowingPredicate<T, E> xor(final ThrowingPredicate<? super T, E> other) {
-        Objects.requireNonNull(other);
-
         return t -> test(t) ^ other.test(t);
     }
 
@@ -74,7 +67,7 @@ public interface ThrowingPredicate<T, E extends Throwable> {
         return t -> {
             try {
                 return test(t);
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new WrappedException(e);
             }
         };
