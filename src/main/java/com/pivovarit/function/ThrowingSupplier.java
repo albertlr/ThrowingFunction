@@ -15,11 +15,10 @@
  */
 package com.pivovarit.function;
 
-import com.pivovarit.function.exception.WrappedException;
-
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Represents a function that accepts zero arguments and returns some value.
@@ -27,51 +26,45 @@ import java.util.function.Supplier;
  *
  * @param <T> the type of the output to the function
  * @param <E> the type of the thrown checked exception
- *
  * @author Grzegorz Piwowarek
  */
 @FunctionalInterface
 public interface ThrowingSupplier<T, E extends Exception> {
     T get() throws E;
 
-    /**
-     * @return this Consumer instance as a new Function instance
-     */
-    default ThrowingFunction<Void, T, E> asFunction() {
-        return arg -> get();
-    }
-
-    static <T, E extends Exception> Supplier<T> unchecked(ThrowingSupplier<T, E> supplier) {
-        return supplier.uncheck();
-    }
-
-    static <T, E extends Exception> Supplier<Optional<T>> lifted(ThrowingSupplier<T, E> supplier) {
-        return supplier.lift();
-    }
-
-    /**
-     * @return a new Supplier instance which wraps thrown checked exception instance into a RuntimeException
-     */
-    default Supplier<T> uncheck() {
+    static <T> Supplier<T> unchecked(ThrowingSupplier<? extends T, ?> supplier) {
+        requireNonNull(supplier);
         return () -> {
             try {
-                return get();
+                return supplier.get();
             } catch (final Exception e) {
-                throw new WrappedException(e);
+                throw new CheckedException(e);
+            }
+        };
+    }
+
+    static <T> Supplier<Optional<T>> optional(ThrowingSupplier<? extends T, ?> supplier) {
+        requireNonNull(supplier);
+        return () -> {
+            try {
+                return Optional.ofNullable(supplier.get());
+            } catch (final Exception e) {
+                return Optional.empty();
             }
         };
     }
 
     /**
-     * @return a new Supplier that returns the result as an Optional instance. In case of a failure, empty Optional is
-     * returned
+     * Returns a new Supplier instance which rethrows the checked exception using the Sneaky Throws pattern
+     * @return Supplier instance that rethrows the checked exception using the Sneaky Throws pattern
      */
-    default Supplier<Optional<T>> lift() {
+    static <T> Supplier<T> sneaky(ThrowingSupplier<? extends T, ?> supplier) {
+        requireNonNull(supplier);
         return () -> {
             try {
-                return Optional.of(get());
-            } catch (Exception e) {
-                return Optional.empty();
+                return supplier.get();
+            } catch (final Exception ex) {
+                return SneakyThrowUtil.sneakyThrow(ex);
             }
         };
     }

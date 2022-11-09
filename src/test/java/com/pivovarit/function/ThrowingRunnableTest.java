@@ -1,6 +1,5 @@
 package com.pivovarit.function;
 
-import com.pivovarit.function.exception.WrappedException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -22,31 +21,6 @@ class ThrowingRunnableTest {
     }
 
     @Test
-    void shouldRunUnchecked() {
-        // given
-        ThrowingRunnable<Exception> runnable = () -> { };
-
-        // when
-        runnable.unchecked().run();
-
-        // then WrappedException thrown
-    }
-
-    @Test
-    void shouldRunUncheckedAndThrow() {
-        IOException cause = new IOException("some message");
-
-        // given
-        ThrowingRunnable<Exception> runnable = () -> { throw cause; };
-
-        // when
-        assertThatThrownBy(() -> runnable.unchecked().run())
-          .isInstanceOf(WrappedException.class)
-          .hasMessage(cause.getMessage())
-          .hasCause(cause);
-    }
-
-    @Test
     void shouldRunUncheckedAndThrowUsingUtilsMethod() {
         IOException cause = new IOException("some message");
 
@@ -55,7 +29,7 @@ class ThrowingRunnableTest {
 
         // when
         assertThatThrownBy(() -> ThrowingRunnable.unchecked(runnable).run())
-          .isInstanceOf(WrappedException.class)
+          .isInstanceOf(CheckedException.class)
           .hasMessage(cause.getMessage())
           .hasCause(cause);
     }

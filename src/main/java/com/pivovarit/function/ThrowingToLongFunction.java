@@ -15,45 +15,42 @@
  */
 package com.pivovarit.function;
 
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.ToLongFunction;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * Represents an action that can be performed.
+ * Represents a ToLongFunction that accepts one argument and returns a long value;
  * Function might throw a checked exception instance.
  *
+ * @param <T> the type of the input to the function
  * @param <E> the type of the thrown checked exception
- *
- * @author Grzegorz Piwowarek
+ * @author Andreas Zöllner
  */
 @FunctionalInterface
-public interface ThrowingRunnable<E extends Exception> {
-    void run() throws E;
+public interface ThrowingToLongFunction<T, E extends Exception> {
+    long applyAsLong(T arg) throws E;
 
-    static Runnable unchecked(ThrowingRunnable<?> runnable) {
-        requireNonNull(runnable);
-        return () -> {
+    static <T> ToLongFunction<T> unchecked(final ThrowingToLongFunction<? super T, ?> function) {
+        requireNonNull(function);
+        return t -> {
             try {
-                runnable.run();
+                return function.applyAsLong(t);
             } catch (final Exception e) {
                 throw new CheckedException(e);
             }
         };
     }
 
-    /**
-     * Returns a new Runnable instance which rethrows the checked exception using the Sneaky Throws pattern
-     *
-     * @return Runnable instance that rethrows the checked exception using the Sneaky Throws pattern
-     */
-    static Runnable sneaky(ThrowingRunnable<?> runnable) {
-        Objects.requireNonNull(runnable);
-        return () -> {
+    static <T1> ToLongFunction<T1> sneaky(ThrowingToLongFunction<? super T1, ?> function) {
+        requireNonNull(function);
+        return t -> {
             try {
-                runnable.run();
-            } catch (Exception e) {
-                SneakyThrowUtil.sneakyThrow(e);
+                return function.applyAsLong(t);
+            } catch (final Exception ex) {
+                return SneakyThrowUtil.sneakyThrow(ex);
             }
         };
     }

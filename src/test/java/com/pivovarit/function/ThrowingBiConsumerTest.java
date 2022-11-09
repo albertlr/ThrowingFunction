@@ -1,9 +1,9 @@
 package com.pivovarit.function;
 
-import com.pivovarit.function.exception.WrappedException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.LongAdder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -13,44 +13,15 @@ class ThrowingBiConsumerTest {
     @Test
     void shouldConsume() throws Exception {
         // given
-        Integer[] input = {0};
+        LongAdder input = new LongAdder();
 
-        ThrowingBiConsumer<Integer, Integer, Exception> consumer = (i, j) -> input[0] = 2;
+        ThrowingBiConsumer<Integer, Integer, Exception> consumer = (i, j) -> input.increment();
 
         // when
         consumer.accept(2, 3);
 
         // then
-        assertThat(input[0]).isEqualTo(2);
-    }
-
-    @Test
-    void shouldConsumeAfter() throws Exception {
-        // given
-        Integer[] input = {0};
-
-        ThrowingBiConsumer<Integer, Integer, Exception> consumer = (i, j) -> input[0] = 2;
-        ThrowingBiConsumer<Integer, Integer, Exception> after = (i, j) -> input[0] = 3;
-
-        // when
-        consumer.andThenConsume(after).accept(2, 3);
-
-        // then
-        assertThat(input[0]).isEqualTo(3);
-    }
-
-    @Test
-    void shouldConsumeAsFunction() throws Exception {
-        // given
-        Integer[] input = {0};
-
-        ThrowingBiConsumer<Integer, Integer, Exception> consumer = (i, j) -> input[0] = 2;
-
-        // when
-        consumer.asFunction().apply(42, 0);
-
-        // then
-        assertThat(input[0]).isEqualTo(2);
+        assertThat(input.sum()).isEqualTo(1);
     }
 
     @Test
@@ -61,10 +32,9 @@ class ThrowingBiConsumerTest {
         ThrowingBiConsumer<Integer, Integer, IOException> consumer = (i, j) -> { throw cause; };
 
         // when
-        assertThatThrownBy(() -> {
-            ThrowingBiConsumer.unchecked(consumer).accept(3, 3);
-        }).hasMessage(cause.getMessage())
-          .isInstanceOf(WrappedException.class)
+        assertThatThrownBy(() -> ThrowingBiConsumer.unchecked(consumer).accept(3, 3))
+          .hasMessage(cause.getMessage())
+          .isInstanceOf(CheckedException.class)
           .hasCauseInstanceOf(cause.getClass());
     }
 
@@ -77,5 +47,19 @@ class ThrowingBiConsumerTest {
         ThrowingBiConsumer.unchecked(consumer).accept(3, 4);
 
         // then no exception thrown
+    }
+
+    @Test
+    void shouldConsumeAndSneakyThrow() {
+        IOException cause = new IOException("some message");
+
+        // given
+        ThrowingBiConsumer<Integer, Integer, IOException> consumer = (i, j) -> { throw cause; };
+
+        // when
+        assertThatThrownBy(() -> ThrowingBiConsumer.sneaky(consumer).accept(3, 3))
+          .hasMessage(cause.getMessage())
+          .isInstanceOf(IOException.class)
+          .hasNoCause();
     }
 }

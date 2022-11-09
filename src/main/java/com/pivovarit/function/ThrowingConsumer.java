@@ -15,10 +15,10 @@
  */
 package com.pivovarit.function;
 
-import com.pivovarit.function.exception.WrappedException;
-
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Represents a function that accepts one argument and does not return any value;
@@ -34,41 +34,28 @@ public interface ThrowingConsumer<T, E extends Exception> {
 
     void accept(T t) throws E;
 
-    static <T, E extends Exception> Consumer<T> unchecked(ThrowingConsumer<T, E> consumer) {
-        return consumer.uncheck();
-    }
-
-    /**
-     * Chains given ThrowingConsumer instance
-     * @param after - consumer that is chained after this instance
-     * @return chained Consumer instance
-     */
-    default ThrowingConsumer<T, E> andThenConsume(final ThrowingConsumer<? super T, E> after) {
-        return t -> {
-            accept(t);
-            after.accept(t);
-        };
-    }
-
-    /**
-     * @return this consumer instance as a Function instance
-     */
-    default ThrowingFunction<T, Void, E> asFunction() {
-        return arg -> {
-            this.accept(arg);
-            return null;
-        };
-    }
-
-    /**
-     * @return a Consumer instance which wraps thrown checked exception instance into a RuntimeException
-     */
-    default Consumer<T> uncheck() {
+    static <T> Consumer<T> unchecked(ThrowingConsumer<? super T, ?> consumer) {
+        requireNonNull(consumer);
         return t -> {
             try {
-                accept(t);
+                consumer.accept(t);
             } catch (final Exception e) {
-                throw new WrappedException(e);
+                throw new CheckedException(e);
+            }
+        };
+    }
+
+    /**
+     * Returns a new BiConsumer instance which rethrows the checked exception using the Sneaky Throws pattern
+     * @return BiConsumer instance that rethrows the checked exception using the Sneaky Throws pattern
+     */
+    static <T> Consumer<T> sneaky(ThrowingConsumer<? super T, ?> consumer) {
+        Objects.requireNonNull(consumer);
+        return t -> {
+            try {
+                consumer.accept(t);
+            } catch (Exception e) {
+                SneakyThrowUtil.sneakyThrow(e);
             }
         };
     }

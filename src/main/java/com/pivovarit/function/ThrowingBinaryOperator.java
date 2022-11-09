@@ -15,10 +15,9 @@
  */
 package com.pivovarit.function;
 
-import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
-import com.pivovarit.function.exception.WrappedException;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Represents an operation upon two operands of the same type, producing a result
@@ -32,24 +31,19 @@ import com.pivovarit.function.exception.WrappedException;
  * @param <T> the type of the operands and result of the operator
  * @param <E> the type of the thrown checked exception
  *
+ * @author Grzegorz Piwowarek
  * @see ThrowingBiFunction
  * @see ThrowingUnaryOperator
- *
- * @author Grzegorz Piwowarek
  */
 public interface ThrowingBinaryOperator<T, E extends Exception> extends ThrowingBiFunction<T, T, T, E> {
 
-    static <T, E extends Exception> BiFunction<T, T, T> unchecked(ThrowingBinaryOperator<T, E> function) {
-        return function.unchecked();
-    }
-    
-    @Override
-    default BinaryOperator<T> unchecked() {
+    static <T> BinaryOperator<T> unchecked(ThrowingBinaryOperator<T, ?> function) {
+        requireNonNull(function);
         return (arg1, arg2) -> {
             try {
-                return apply(arg1, arg2);
+                return function.apply(arg1, arg2);
             } catch (final Exception e) {
-                throw new WrappedException(e);
+                throw new CheckedException(e);
             }
         };
     }

@@ -1,6 +1,5 @@
 package com.pivovarit.function;
 
-import com.pivovarit.function.exception.WrappedException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -9,44 +8,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ThrowingBinaryOperatorTest {
-
-    @Test
-    void shouldAndThen() throws Exception {
-        // given
-        ThrowingBinaryOperator<Integer, Exception> f1 = (i, j) -> i * j;
-        ThrowingFunction<Integer, Integer, Exception> f2 = i -> i + 10;
-
-        // when
-        Integer result = f1.andThen(f2).apply(2, 2);
-
-        // then
-        assertThat(result).isEqualTo(14);
-    }
-
-    @Test
-    void shouldReturnOptional() {
-        // given
-        ThrowingBinaryOperator<Integer, Exception> f1 = (i, j) -> i * j;
-
-        // when
-        Optional<Integer> result = f1.lift().apply(2, 2);
-
-        // then
-        assertThat(result).isPresent();
-    }
-
-    @Test
-    void shouldReturnEmptyOptional() {
-        // given
-        ThrowingBinaryOperator<Integer, Exception> f1 =
-          (i, j) -> { throw new Exception(); };
-
-        // when
-        Optional<Integer> result = f1.lift().apply(42, 42);
-
-        // then
-        assertThat(result).isEmpty();
-    }
 
     @Test
     void shouldThrowEx() {
@@ -61,21 +22,6 @@ class ThrowingBinaryOperatorTest {
     }
 
     @Test
-    void shouldWrapInWrappedEx() {
-        Exception cause = new Exception("some message");
-
-        // given
-        ThrowingBinaryOperator<Integer, Exception> f1 =
-          (i, j) -> { throw cause; };
-
-        // when
-        assertThatThrownBy(() -> f1.unchecked().apply(42, 42))
-          .isInstanceOf(WrappedException.class)
-          .hasMessage(cause.getMessage())
-          .hasCause(cause);
-    }
-
-    @Test
     void shouldWrapInRuntimeExWhenUsingUnchecked() {
         Exception cause = new Exception("some message");
 
@@ -85,7 +31,7 @@ class ThrowingBinaryOperatorTest {
 
         // when
         assertThatThrownBy(() -> ThrowingBinaryOperator.unchecked(f1).apply(42, 42))
-          .isInstanceOf(WrappedException.class)
+          .isInstanceOf(CheckedException.class)
           .hasMessage(cause.getMessage())
           .hasCause(cause);
     }
@@ -93,7 +39,7 @@ class ThrowingBinaryOperatorTest {
     @Test
     void shouldApplyWhenNoExceptionThrown() {
         // given
-        ThrowingBinaryOperator<Integer, Exception> f1 = (i, j) -> i + j;
+        ThrowingBinaryOperator<Integer, Exception> f1 = Integer::sum;
 
         // when
         ThrowingBinaryOperator.unchecked(f1).apply(42, 0);
@@ -102,27 +48,14 @@ class ThrowingBinaryOperatorTest {
     }
 
     @Test
-    void shouldWrapInOptionalWhenUsingStandardUtilsFunctions() {
-
-        // given
-        ThrowingBinaryOperator<Integer, Exception> f1 = (i, j) -> i + j;
-
-        // when
-        Optional<Integer> result = f1.lift().apply(2, 2);
-
-        //then
-        assertThat(result).isPresent();
-    }
-
-    @Test
     void shouldWrapInOptionalWhenUsingLifted() {
 
         // given
-        ThrowingBinaryOperator<Integer, Exception> f1 = (i, j) -> i + j;
+        ThrowingBinaryOperator<Integer, Exception> f1 = Integer::sum;
 
         // when
         Optional<Integer> result =
-          ThrowingBiFunction.lifted(f1).apply(2, 2);
+          ThrowingBiFunction.optional(f1).apply(2, 2);
 
         //then
         assertThat(result).isPresent();
